@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::core::features::programmatic_tool_calling::{ProgramFunctionRecord, ProgrammaticName};
-use crate::core::tools::external::{ExternalTool, RuntimeBuiltinToolName};
+use crate::core::tools::external::{ExternalTool, RuntimeBuiltinToolName, ToolTarget};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq)]
 pub(in crate::core::checkpoint::v1) enum CheckpointRuntimeBuiltinToolName {
@@ -160,21 +160,25 @@ impl CheckpointExternalTool {
 
     pub(in crate::core::checkpoint::v1) fn restore(self, invocation_name: String) -> ExternalTool {
         match self {
-            Self::RuntimeBuiltin { name, arguments } => ExternalTool::RuntimeBuiltin {
-                name: name.restore(&invocation_name),
+            Self::RuntimeBuiltin { name, arguments } => ExternalTool::from_target(
+                ToolTarget::RuntimeBuiltin {
+                    name: name.restore(&invocation_name),
+                },
                 invocation_name,
                 arguments,
-            },
+            ),
             Self::Provided {
                 group_name,
                 tool_name,
                 arguments,
-            } => ExternalTool::Provided {
-                group_name,
-                tool_name,
+            } => ExternalTool::from_target(
+                ToolTarget::Provided {
+                    group_name,
+                    tool_name,
+                },
                 invocation_name,
                 arguments,
-            },
+            ),
         }
     }
 }
