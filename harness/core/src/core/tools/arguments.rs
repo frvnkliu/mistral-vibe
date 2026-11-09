@@ -41,14 +41,17 @@ impl ArgumentsRejection<'_> {
 }
 
 /// Checks a tool call's arguments against the tool's JSON Schema, the one
-/// source of its structural rules. A built-in tool may word a schema error in
-/// its own sentence, and may check rules the schema cannot state once the
-/// schema passes. `tool` is `None` for app-provided tools.
+/// source of its structural rules. The Runtime reads every tool's arguments as
+/// a JSON object, so a non-object value is rejected first, even when the tool's
+/// schema does not say `"type": "object"`. A built-in tool may word a schema
+/// error in its own sentence, and may check rules the schema cannot state once
+/// the schema passes. `tool` is `None` for app-provided tools.
 pub(crate) fn validate_arguments<'a>(
     tool: Option<RuntimeBuiltinToolName>,
     schema: &Value,
     arguments: &'a Value,
 ) -> Result<(), ArgumentsRejection<'a>> {
+    validate_json_schema(&serde_json::json!({"type": "object"}), arguments)?;
     validate_json_schema(schema, arguments).map_err(|rejection| match rejection {
         ArgumentsRejection::Schema { error, .. } => ArgumentsRejection::Schema {
             explained: tool.and_then(|tool| tool.explain_schema_error(schema, &error)),

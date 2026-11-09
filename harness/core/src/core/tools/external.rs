@@ -419,6 +419,7 @@ impl ExternalTool {
         invocation_name: impl Into<String>,
         arguments: Value,
     ) -> Self {
+        let arguments = object_arguments(arguments);
         match target {
             ToolTarget::RuntimeBuiltin { name } => Self::RuntimeBuiltin {
                 name,
@@ -444,6 +445,7 @@ impl ExternalTool {
     }
 
     pub(crate) fn with_arguments(&self, arguments: Value) -> Self {
+        let arguments = object_arguments(arguments);
         match self {
             Self::RuntimeBuiltin {
                 name,
@@ -575,6 +577,17 @@ impl From<&ExternalToolCall> for HookToolCall {
 impl ExternalToolCall {
     pub(crate) fn hook_tool_key(&self) -> HookToolKey {
         self.call.hook_tool_key()
+    }
+}
+
+/// Every `ExternalTool` crosses the Step Protocol boundary as a tool call
+/// whose `arguments` field is a JSON object. A program call rejected before
+/// execution for passing a non-object value still commits an observation, so
+/// non-object values normalize to `{}` here.
+fn object_arguments(arguments: Value) -> Value {
+    match arguments {
+        Value::Object(_) => arguments,
+        _ => Value::Object(serde_json::Map::new()),
     }
 }
 

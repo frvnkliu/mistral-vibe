@@ -15,7 +15,7 @@ pub(crate) fn prompt_section(profile: CommandEnvironmentProfile) -> String {
         r#"## Background processes
 
 Use background processes through the programmatic `tools.process` namespace when a command must keep running while you continue other work:
-- `tools.process.start` accepts the same command syntax as `tools.file_system.{tool_name}`.
+- `tools.process.start({{ command }})` accepts the same command syntax as `tools.file_system.{tool_name}`.
 - `tools.process.start` starts a command and returns a stable process ID immediately.
 - `tools.process.output` reads incremental output from a raw byte cursor and can wait for new output or termination, or reads the current newest page with `from: "end"`. Continue forward reads at `nextCursor`; `hasMore` reports unread retained output and `truncatedBefore` reports discarded history.
 - `tools.process.write` sends text, control keys, or raw bytes to an interactive process.
